@@ -1,12 +1,65 @@
 .App {
   text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .App-header {
+  width: 100%;
+  height: 25vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   font-size: calc(10px + 2vmin);
+
+  background-color: skyblue;
 }
 
+.App-body {
+  width: 100%;
+}
+
+.left-col {
+  background-color: lightcoral;
+  padding-right: 20px !important;
+}
+
+.right-col {
+  /* background-color: lightsalmon; */
+  padding-left: 20px !important;
+}
+
+.new-input h1 {
+  font-size: 18px;
+}
+
+.new-input input,
+.new-input select {
+  width: 100%;
+  height: 30px;
+  border: 1px solid darkgrey;
+  border-radius: 3px;
+}
+
+.new-task Button {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.task-item {
+  background-color: whitesmoke;
+  margin-bottom: 2px;
+  border-radius: 3px;
+}
+
+.task-item button {
+  height: 100%;
+}
+
+.col {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
