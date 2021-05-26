@@ -1,14 +1,17 @@
-// import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import "./App.css";
 import React from "react";
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
 import Axios from "axios";
 import { EditText } from "react-edit-text";
-import "react-edit-text/dist/index.css";
+// import styled from "styled-components";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import NewTask from "./components/NewTask.js";
+import TaskItem from "./components/TaskItem.js";
+
+import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "react-edit-text/dist/index.css";
 
 function App() {
   const endpoint = "http://localhost:4000";
@@ -18,6 +21,8 @@ function App() {
   const [taskDueTime, setTaskDueTime] = useState(0);
   const [taskTags, setTaskTags] = useState([]);
   const [taskList, setTaskList] = useState([]);
+
+  const dailyList = ["Daily Task 1"];
 
   useEffect(() => {
     getTasks();
@@ -105,83 +110,153 @@ function App() {
       </header>
 
       <body className="App-body">
-        <Container fluid>
-          <Row>
-            <Col className="left-col">
-              <h1>Daily tasks</h1>
-            </Col>
-            <Col className="right-col">
-              <h1>All tasks</h1>
+        <DragDropContext>
+          <Container fluid>
+            <Row>
+              <Col className="left-col">
+                <h1>Daily tasks</h1>
 
-              <div className="new-task">
-                <NewTask
-                  setTaskName={setTaskName}
-                  setTaskDueDate={setTaskDueDate}
-                  setTaskDueTime={setTaskDueTime}
-                  setTaskTags={setTaskTags}
-                  addTask={addTask}
-                />
-              </div>
-
-              <div className="overall-task-list">
-                {taskList.map((data) => {
-                  return (
-                    <div key={data.id} className="task-item">
-                      <Container fluid>
-                        <Row>
-                          <Col>
-                            <EditText
-                              type="text"
-                              defaultValue={data.task_name}
-                              style={{ fontSize: "16px" }}
-                              onSave={(value) => {
-                                updateTaskName(value, data.id);
-                              }}
-                            />
-                          </Col>
-                          <Col>
-                            <EditText
-                              type="date"
-                              defaultValue={data.task_due_date}
-                              style={{ fontSize: "16px" }}
-                              onSave={(value) => {
-                                updateTaskDueDate(value, data.id);
-                              }}
-                            />
-                          </Col>
-                          <Col>
-                            <EditText
-                              type="time"
-                              defaultValue={data.task_due_time}
-                              style={{ fontSize: "16px" }}
-                              onSave={(value) => {
-                                updateTaskDueTime(value, data.id);
-                              }}
-                            />
-                          </Col>
-                          <Col>
-                            {/* <h4>{data.task_tags}</h4> */}
-                            <h4 style={{ fontSize: "16px" }}>**tags**</h4>
-                          </Col>
-                          <Col xs={2.5}>
-                            <Button
-                              variant="danger"
-                              onClick={() => {
-                                deleteTask(data.id);
-                              }}
+                <Droppable droppableId="daily-tasks">
+                  {(provided) => (
+                    <div className="daily-task-list" ref={provided.innerRef}>
+                      {dailyList.length ? (
+                        dailyList.map((data, index) => {
+                          return (
+                            <Draggable
+                              key={data}
+                              draggableId={data}
+                              index={index}
                             >
-                              Delete
-                            </Button>
-                          </Col>
-                        </Row>
-                      </Container>
+                              {(provided, snapshot) => (
+                                <div
+                                  className="task-item"
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  style={provided.draggableProps.style}
+                                  {...provided.dragHandleProps}
+                                >
+                                  {data}
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })
+                      ) : (
+                        <div>HERE</div>
+                      )}
+                      {provided.placeholder}
                     </div>
-                  );
-                })}
-              </div>
-            </Col>
-          </Row>
-        </Container>
+                  )}
+                </Droppable>
+              </Col>
+
+              <Col className="right-col">
+                <h1>All tasks</h1>
+
+                <div className="new-task">
+                  <NewTask
+                    setTaskName={setTaskName}
+                    setTaskDueDate={setTaskDueDate}
+                    setTaskDueTime={setTaskDueTime}
+                    setTaskTags={setTaskTags}
+                    addTask={addTask}
+                  />
+                </div>
+
+                <Droppable droppableId="all-tasks" isDropDisabled={true}>
+                  {(provided) => (
+                    <div className="overall-task-list" ref={provided.innerRef}>
+                      {taskList.map((data, index) => {
+                        return (
+                          <Draggable
+                            key={data.id}
+                            draggableId={data.task_name}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <React.Fragment>
+                                <div
+                                  className="task-item"
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  style={provided.draggableProps.style}
+                                  {...provided.dragHandleProps}
+                                >
+                                  <TaskItem
+                                    data={data}
+                                    updateTaskName={updateTaskName}
+                                    updateTaskDueDate={updateTaskDueDate}
+                                    updateTaskDueTime={updateTaskDueTime}
+                                    deleteTask={deleteTask}
+                                  />
+                                </div>
+                                {snapshot.isDragging && (
+                                  <div className="task-item">
+                                    <Container fluid>
+                                      <Row>
+                                        <Col>
+                                          <EditText
+                                            type="text"
+                                            defaultValue={data.task_name}
+                                            style={{ fontSize: "16px" }}
+                                            onSave={(value) => {
+                                              updateTaskName(value, data.id);
+                                            }}
+                                          />
+                                        </Col>
+                                        <Col>
+                                          <EditText
+                                            type="date"
+                                            defaultValue={data.task_due_date}
+                                            style={{ fontSize: "16px" }}
+                                            onSave={(value) => {
+                                              updateTaskDueDate(value, data.id);
+                                            }}
+                                          />
+                                        </Col>
+                                        <Col>
+                                          <EditText
+                                            type="time"
+                                            defaultValue={data.task_due_time}
+                                            style={{ fontSize: "16px" }}
+                                            onSave={(value) => {
+                                              updateTaskDueTime(value, data.id);
+                                            }}
+                                          />
+                                        </Col>
+                                        <Col>
+                                          {/* <h4>{data.task_tags}</h4> */}
+                                          <h4 style={{ fontSize: "16px" }}>
+                                            **tags**
+                                          </h4>
+                                        </Col>
+                                        <Col xs={2.5}>
+                                          <Button
+                                            variant="danger"
+                                            onClick={() => {
+                                              deleteTask(data.id);
+                                            }}
+                                          >
+                                            Delete
+                                          </Button>
+                                        </Col>
+                                      </Row>
+                                    </Container>
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </Col>
+            </Row>
+          </Container>
+        </DragDropContext>
       </body>
     </div>
   );
