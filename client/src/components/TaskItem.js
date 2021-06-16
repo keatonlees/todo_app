@@ -1,66 +1,69 @@
 import React from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { EditText } from "react-edit-text";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faTrash } from "@fortawesome/free-solid-svg-icons";
 
-function TaskItem(
+function TaskItem({
   data,
   updateTaskName,
   updateTaskDueDate,
   updateTaskDueTime,
-  deleteTask
-) {
-  return (
-    <Container fluid>
-      <Row>
-        <Col>+</Col>
+  deleteTask,
+}) {
+  const tags_array = data.task_tags.split(",");
+  const colours_array = data.tag_colours.split(",");
 
-        <Col>
-          <EditText
-            type="text"
-            defaultValue={data.task_name}
-            style={{ fontSize: "16px" }}
-            onSave={(value) => {
-              updateTaskName(value, data.id);
-            }}
-          />
-        </Col>
-        <Col>
-          <EditText
-            type="date"
-            defaultValue={data.task_due_date}
-            style={{ fontSize: "16px" }}
-            onSave={(value) => {
-              updateTaskDueDate(value, data.id);
-            }}
-          />
-        </Col>
-        <Col>
-          <EditText
-            type="time"
-            defaultValue={data.task_due_time}
-            style={{ fontSize: "16px" }}
-            onSave={(value) => {
-              updateTaskDueTime(value, data.id);
-            }}
-          />
-        </Col>
-        <Col>
-          {/* <h4>{data.task_tags}</h4> */}
-          <h4 style={{ fontSize: "16px" }}>**tags**</h4>
-        </Col>
-        <Col xs={2.5}>
-          <Button
-            variant="danger"
-            onClick={() => {
-              deleteTask(data.id);
-            }}
-          >
-            Delete
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+  return (
+    <div className="item-content">
+      <FontAwesomeIcon icon={faBars} className="item-handle" />
+      <EditText
+        className="item-name"
+        type="text"
+        defaultValue={data.task_name}
+        onSave={(value) => {
+          updateTaskName(value, data.id);
+        }}
+      />
+      <EditText
+        className="item-date"
+        type="date"
+        defaultValue={data.task_due_date}
+        onSave={(value) => {
+          updateTaskDueDate(value, data.id);
+        }}
+      />
+      <EditText
+        className="item-time"
+        type="time"
+        defaultValue={data.task_due_time}
+        onSave={(value) => {
+          updateTaskDueTime(value, data.id);
+        }}
+      />
+      <div className="item-tags">
+        {tags_array.map((tag_name, index) => {
+          return (
+            <div
+              key={index}
+              className="item-tags-tag"
+              // style={{ backgroundColor: "lightgrey" }}
+              style={{ backgroundColor: colours_array[index] }}
+            >
+              {tag_name}
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        className="item-delete-btn"
+        onClick={() => {
+          deleteTask(data.id);
+        }}
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </div>
+    </div>
   );
 }
 

@@ -1,66 +1,231 @@
 .App {
   text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 60px;
+  padding-right: 60px;
 }
-
 .App-header {
   width: 100%;
-  height: 25vh;
+  height: 15vh;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-
-  background-color: skyblue;
+  border-bottom: 3px solid darkgrey;
 }
 
 .App-body {
   width: 100%;
 }
-
 .left-col {
-  background-color: lightcoral;
-  padding-right: 20px !important;
+  margin-right: 20px !important;
 }
-
 .right-col {
-  /* background-color: lightsalmon; */
-  padding-left: 20px !important;
+  margin-left: 20px !important;
 }
-
-.new-input h1 {
-  font-size: 18px;
-}
-
-.new-input input,
-.new-input select {
-  width: 100%;
-  height: 30px;
-  border: 1px solid darkgrey;
-  border-radius: 3px;
-}
-
-.new-task Button {
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-.task-item {
-  background-color: whitesmoke;
-  margin-bottom: 2px;
-  border-radius: 3px;
-}
-
-.task-item button {
-  height: 100%;
-}
-
-
 .col {
   padding-left: 0 !important;
   padding-right: 0 !important;
+}
+
+/* ---------- NEW ITEM INPUTS AND ALL TASKS DISPLAY  ---------- */
+
+.input-content,
+.item-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 40px;
+  /* border-radius: 5px; */
+}
+.input-content {
+  /* background-color: skyblue; */
+  /* border: 1px solid lightgray; */
+  margin-bottom: 10px;
+}
+.item-content {
+  background-color: whitesmoke;
+  border: 1px solid lightgray;
+  margin-bottom: 2px;
+}
+
+.input-content input {
+  height: 100%;
+}
+
+.input-name,
+.input-date,
+.input-time,
+.item-name,
+.item-date,
+.item-time {
+  font-size: 16px;
+}
+.input-name,
+.input-date,
+.input-time {
+  border: 1px solid black;
+  border-radius: 4px;
+}
+.item-name,
+.item-date,
+.item-time {
+  border-right: 2px solid lightgray;
+}
+
+input:focus { 
+  outline: none;
+}
+
+.input-handle,
+.item-handle {
+  width: 30px !important;
+  color: darkslategray;
+}
+.input-name,
+.item-name {
+  width: 38% !important;
+}
+.input-date,
+.item-date {
+  width: 17% !important;
+}
+.input-time,
+.item-time {
+  width: 13% !important;
+}
+
+.input-tags {
+  width: 23% !important;
+}
+
+.input-add-btn,
+.item-delete-btn {
+  position: absolute;
+  right: 0;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  font-size: 18px;
+  color: white;
+  transition: 0.3s;
+}
+.input-add-btn {
+  background-color: green;
+}
+.item-delete-btn {
+  background-color: red;
+}
+
+.input-add-btn:hover,
+.item-delete-btn:hover {
+  cursor: pointer;
+}
+.input-add-btn:hover {
+  background-color: darkgreen;
+}
+.item-delete-btn:hover {
+  background-color: firebrick;
+}
+
+.item-tags {
+  display: flex;
+  margin-left: 3px;
+}
+
+.item-tags-tag {
+  margin-right: 3px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ---------- DAILY TASKS  ---------- */
+
+.clear-all-daily-btn {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: white;
+  background-color: red;
+  transition: 0.3s;
+}
+.clear-all-daily-btn:hover {
+  cursor: pointer;
+  background-color: firebrick;
+}
+
+.daily-timeSlot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.daily-time-display {
+  width: 70px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: skyblue;
+  border-radius: 5px;
+  margin-right: 3px;
+}
+
+.daily-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 30px;
+  background-color: whitesmoke;
+  margin-bottom: 3px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+}
+
+.daily-name {
+  margin-left: 5px;
+  font-size: 16px;
+}
+
+.daily-task-list {
+  width: 100%;
+}
+
+.daily-clear-btn {
+  position: absolute;
+  right: 0;
+  width: 60px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  font-size: 16px;
+  color: red;
+  transition: 0.3s;
+  margin-right: 10px;
+}
+.daily-clear-btn:hover {
+  cursor: pointer;
+  background-color: firebrick;
+  color: white;
+}
+
+.empty-dropzone {
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3px;
+  border: 1px dashed black;
+  border-radius: 5px;
+  color: gray;
+  background-color: whitesmoke;
 }

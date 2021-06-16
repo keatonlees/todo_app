@@ -1,60 +1,115 @@
 import React from "react";
-import { useState, useEffect } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
 import Axios from "axios";
-import { EditText } from "react-edit-text";
-// import styled from "styled-components";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-
-import NewTask from "./components/NewTask.js";
-import TaskItem from "./components/TaskItem.js";
+import { useState, useEffect } from "react";
 
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-edit-text/dist/index.css";
 
+import TasksBody from "./components/TasksBody";
+
 function App() {
   const endpoint = "http://localhost:4000";
+
+  const [tagOptions, setTagOptions] = useState([]);
 
   const [taskName, setTaskName] = useState("");
   const [taskDueDate, setTaskDueDate] = useState(0);
   const [taskDueTime, setTaskDueTime] = useState(0);
   const [taskTags, setTaskTags] = useState([]);
-  const [taskList, setTaskList] = useState([]);
 
-  const dailyList = ["Daily Task 1"];
+  const [taskList, setTaskList] = useState([]);
+  const [dailyList, setDailyList] = useState([]);
+
+  const time_start_index = 7; // IN 24 HOUR CLOCK
+  const time_end_index = 23; // IN 24 HOUR CLOCK
 
   useEffect(() => {
-    getTasks();
+    getTagOptions();
+    refreshTasks();
   }, []);
 
-  const getTasks = async () => {
-    const { status, data } = await Axios.get(endpoint + "/getTasks");
+  const refreshTasks = () => {
+    getAllTasks();
+    getDailyTasksFromTime();
+  };
+
+  const getTagOptions = async () => {
+    const { status, data } = await Axios.get(endpoint + "/getTagOptions");
     if (status === 200) {
-      // console.log("GET TASK STATUS GOOD!");
+      let temp_array = [];
+      data.forEach((element) => {
+        temp_array.push({ value: element.tag_name, label: element.tag_name });
+      });
+      setTagOptions(temp_array);
+    }
+  };
+
+  const getAllTasks = async () => {
+    const { status, data } = await Axios.get(endpoint + "/getAllTasks");
+    if (status === 200) {
       setTaskList(data);
     }
   };
 
+  const getDailyTasksFromTime = async () => {
+    const data_storage = [];
+    for (let i = time_start_index; i < time_end_index + 1; i++) {
+      const { status, data } = await Axios.get(
+        endpoint + `/getDailyTasksFromTime/${i}`
+      );
+      if (status === 200) {
+        data_storage.push(data);
+      }
+    }
+    setDailyList(data_storage);
+  };
+
   const addTask = async () => {
+    let task_id = 0;
+
     const { status } = await Axios.post(endpoint + "/addTask", {
       task_name: taskName,
       task_due_date: taskDueDate,
       task_due_time: taskDueTime,
-      task_tags: taskTags,
     });
     if (status === 200) {
-      // console.log("ADD TASK STATUS GOOD!");
-      getTasks();
+      task_id = await getLastInsertedId();
+      console.log("TASKID:");
+      console.log(task_id);
     }
 
-    // clear states
+    taskTags.forEach((tag_name) => {
+      console.log("TASKID: " + task_id + " TAGNAME: " + tag_name.value);
+      addTagToTask(task_id, tag_name.value);
+    });
+
+    clearStates();
+    clearInputs();
+  };
+
+  const getLastInsertedId = async () => {
+    const { status, data } = await Axios.get(endpoint + "/getLastInsertedId");
+    if (status === 200) return data[0].last_id;
+    return 0;
+  };
+
+  const addTagToTask = async (task_id, tag_name) => {
+    const { status } = await Axios.post(endpoint + "/addTagToTask", {
+      taskid: task_id,
+      tagname: tag_name,
+    });
+    if (status === 200) getAllTasks();
+  };
+
+  const clearStates = () => {
     setTaskName(null);
     setTaskDueDate(null);
     setTaskDueTime(null);
-    setTaskTags(null);
+    // setTaskTags(null);
+  };
 
-    // clear inputs
+  const clearInputs = () => {
     Array.from(document.querySelectorAll("input")).forEach(
       (input) => (input.value = "")
     );
@@ -63,10 +118,7 @@ function App() {
 
   const deleteTask = async (id) => {
     const { status } = await Axios.delete(endpoint + `/deleteTask/${id}`);
-    if (status === 200) {
-      // console.log("DELETE TASK STATUS GOOD!");
-      getTasks();
-    }
+    if (status === 200) refreshTasks();
   };
 
   const updateTaskName = async ({ value }, id) => {
@@ -74,10 +126,7 @@ function App() {
       id: id,
       task_name: value,
     });
-    if (status === 200) {
-      console.log("UPDATE TASK NAME STATUS GOOD!");
-      getTasks();
-    }
+    if (status === 200) refreshTasks();
   };
 
   const updateTaskDueDate = async ({ value }, id) => {
@@ -85,10 +134,7 @@ function App() {
       id: id,
       task_due_date: value,
     });
-    if (status === 200) {
-      console.log("UPDATE TASK DUE DATE STATUS GOOD!");
-      getTasks();
-    }
+    if (status === 200) refreshTasks();
   };
 
   const updateTaskDueTime = async ({ value }, id) => {
@@ -96,10 +142,34 @@ function App() {
       id: id,
       task_due_time: value,
     });
-    if (status === 200) {
-      console.log("UPDATE TASK DUE TIME STATUS GOOD!");
-      getTasks();
-    }
+    if (status === 200) refreshTasks();
+  };
+
+  const onDragEnd = (result) => {
+    const { source, destination } = result;
+    if (!destination) return; // if not dragged to droppable area
+    if (destination)
+      setDaily(taskList[source.index].id, destination.droppableId);
+  };
+
+  const setDaily = async (id, time) => {
+    const { status } = await Axios.put(endpoint + "/setDaily", {
+      id: id,
+      time: time,
+    });
+    if (status === 200) getDailyTasksFromTime();
+  };
+
+  const clearAllDailyTasks = async () => {
+    const { status } = await Axios.delete(endpoint + "/clearAllDailyTasks");
+    if (status === 200) getDailyTasksFromTime();
+  };
+
+  const clearDailyTask = async (id, time) => {
+    const { status } = await Axios.delete(
+      endpoint + `/clearDailyTask/${id}/${time}`
+    );
+    if (status === 200) getDailyTasksFromTime();
   };
 
   return (
@@ -110,153 +180,24 @@ function App() {
       </header>
 
       <body className="App-body">
-        <DragDropContext>
-          <Container fluid>
-            <Row>
-              <Col className="left-col">
-                <h1>Daily tasks</h1>
-
-                <Droppable droppableId="daily-tasks">
-                  {(provided) => (
-                    <div className="daily-task-list" ref={provided.innerRef}>
-                      {dailyList.length ? (
-                        dailyList.map((data, index) => {
-                          return (
-                            <Draggable
-                              key={data}
-                              draggableId={data}
-                              index={index}
-                            >
-                              {(provided, snapshot) => (
-                                <div
-                                  className="task-item"
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  style={provided.draggableProps.style}
-                                  {...provided.dragHandleProps}
-                                >
-                                  {data}
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })
-                      ) : (
-                        <div>HERE</div>
-                      )}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </Col>
-
-              <Col className="right-col">
-                <h1>All tasks</h1>
-
-                <div className="new-task">
-                  <NewTask
-                    setTaskName={setTaskName}
-                    setTaskDueDate={setTaskDueDate}
-                    setTaskDueTime={setTaskDueTime}
-                    setTaskTags={setTaskTags}
-                    addTask={addTask}
-                  />
-                </div>
-
-                <Droppable droppableId="all-tasks" isDropDisabled={true}>
-                  {(provided) => (
-                    <div className="overall-task-list" ref={provided.innerRef}>
-                      {taskList.map((data, index) => {
-                        return (
-                          <Draggable
-                            key={data.id}
-                            draggableId={data.task_name}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <React.Fragment>
-                                <div
-                                  className="task-item"
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  style={provided.draggableProps.style}
-                                  {...provided.dragHandleProps}
-                                >
-                                  <TaskItem
-                                    data={data}
-                                    updateTaskName={updateTaskName}
-                                    updateTaskDueDate={updateTaskDueDate}
-                                    updateTaskDueTime={updateTaskDueTime}
-                                    deleteTask={deleteTask}
-                                  />
-                                </div>
-                                {snapshot.isDragging && (
-                                  <div className="task-item">
-                                    <Container fluid>
-                                      <Row>
-                                        <Col>
-                                          <EditText
-                                            type="text"
-                                            defaultValue={data.task_name}
-                                            style={{ fontSize: "16px" }}
-                                            onSave={(value) => {
-                                              updateTaskName(value, data.id);
-                                            }}
-                                          />
-                                        </Col>
-                                        <Col>
-                                          <EditText
-                                            type="date"
-                                            defaultValue={data.task_due_date}
-                                            style={{ fontSize: "16px" }}
-                                            onSave={(value) => {
-                                              updateTaskDueDate(value, data.id);
-                                            }}
-                                          />
-                                        </Col>
-                                        <Col>
-                                          <EditText
-                                            type="time"
-                                            defaultValue={data.task_due_time}
-                                            style={{ fontSize: "16px" }}
-                                            onSave={(value) => {
-                                              updateTaskDueTime(value, data.id);
-                                            }}
-                                          />
-                                        </Col>
-                                        <Col>
-                                          {/* <h4>{data.task_tags}</h4> */}
-                                          <h4 style={{ fontSize: "16px" }}>
-                                            **tags**
-                                          </h4>
-                                        </Col>
-                                        <Col xs={2.5}>
-                                          <Button
-                                            variant="danger"
-                                            onClick={() => {
-                                              deleteTask(data.id);
-                                            }}
-                                          >
-                                            Delete
-                                          </Button>
-                                        </Col>
-                                      </Row>
-                                    </Container>
-                                  </div>
-                                )}
-                              </React.Fragment>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </Col>
-            </Row>
-          </Container>
-        </DragDropContext>
+        <TasksBody
+          onDragEnd={onDragEnd}
+          clearAllDailyTasks={clearAllDailyTasks}
+          dailyList={dailyList}
+          time_start_index={time_start_index}
+          clearDailyTask={clearDailyTask}
+          taskList={taskList}
+          tagOptions={tagOptions}
+          setTaskName={setTaskName}
+          setTaskDueDate={setTaskDueDate}
+          setTaskDueTime={setTaskDueTime}
+          setTaskTags={setTaskTags}
+          addTask={addTask}
+          updateTaskName={updateTaskName}
+          updateTaskDueDate={updateTaskDueDate}
+          updateTaskDueTime={updateTaskDueTime}
+          deleteTask={deleteTask}
+        />
       </body>
     </div>
   );
